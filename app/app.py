@@ -1295,9 +1295,25 @@ def reports():
                         <td><span class="badge badge-green">Ready</span></td>
                         <td><a href="#" class="email-link">Download</a></td>
                     </tr>
+                    <tr style="opacity: 0.6;">
+                        <td style="font-weight: 500;">HR Confidential Records</td>
+                        <td><span class="badge" style="background: var(--danger-100); color: #b91c1c;">Restricted</span></td>
+                        <td>Dec 20, 2024</td>
+                        <td><span class="badge" style="background: var(--danger-100); color: #b91c1c;">Locked</span></td>
+                        <td><span style="color: var(--gray-400); font-size: 0.8125rem;">Access Denied</span></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top: 1.5rem;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        Some reports require elevated database privileges. Contact your administrator if you need access to restricted data tables.
     </div>
     '''
 
@@ -1380,6 +1396,31 @@ def settings():
                         <div class="settings-desc">Automatic logout after inactivity</div>
                     </div>
                     <span class="settings-value">30 minutes</span>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3 class="settings-title">Database Schema</h3>
+                <div class="settings-row">
+                    <div class="settings-info">
+                        <div class="settings-label">Public Tables</div>
+                        <div class="settings-desc">Tables accessible via search interface</div>
+                    </div>
+                    <span class="settings-value">employees</span>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-info">
+                        <div class="settings-label">Restricted Tables</div>
+                        <div class="settings-desc">Tables with limited access permissions</div>
+                    </div>
+                    <span class="settings-value" style="color: #b91c1c;">hr_secrets</span>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-info">
+                        <div class="settings-label">Total Records</div>
+                        <div class="settings-desc">Combined row count across all tables</div>
+                    </div>
+                    <span class="settings-value">16</span>
                 </div>
             </div>
         </div>
