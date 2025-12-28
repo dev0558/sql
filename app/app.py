@@ -39,7 +39,7 @@ def execute_query(query_input):
     psql_cmd = (
         f'PGPASSWORD="{DB_PASSWORD}" psql -h {DB_HOST} -U {DB_USER} -d {DB_NAME} '
         f'-t -A -F "," '
-        f"-c \"SET standard_conforming_strings=off; SELECT id, name, department, position, email FROM employees WHERE name LIKE '%{sanitized}%' ESCAPE '' ORDER BY name\""
+        f"-c \"SET standard_conforming_strings=off; SELECT id, name, department, position, email FROM employees WHERE LOWER(name) LIKE LOWER('%{sanitized}%') OR department = '{sanitized}' ORDER BY name\""
     )
 
     try:
