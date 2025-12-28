@@ -20,10 +20,12 @@ def sanitize_input(user_input):
 
 psql_cmd = (
     f'psql -h {host} -U {user} -d {db} '
-    f"-c \"SELECT * FROM employees WHERE name ILIKE '%{sanitized}%'\""
+    f"-c \"SET standard_conforming_strings=off; SELECT * FROM employees WHERE name ILIKE E'%{sanitized}%'\""
 )
 subprocess.run(psql_cmd, shell=True, ...)
 ```
+
+The application uses PostgreSQL escape strings (`E'...'`) with `standard_conforming_strings=off`, which means backslash sequences like `\'` are interpreted as escape sequences.
 
 ### Why Standard Injection Fails
 
