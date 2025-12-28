@@ -24,8 +24,8 @@ def sanitize_input(user_input):
     """
     if user_input is None:
         return ''
-    # Escape single quotes by doubling them
-    return user_input.replace("'", "''")
+    # Escape single quotes with backslash (common but flawed approach)
+    return user_input.replace("'", "\\'")
 
 
 def execute_query(query_input):
