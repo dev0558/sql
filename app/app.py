@@ -36,11 +36,10 @@ def execute_query(query_input):
     sanitized = sanitize_input(query_input)
 
     # Build psql command with the search query
-    # Using legacy escape string behavior for backward compatibility
     psql_cmd = (
         f'PGPASSWORD="{DB_PASSWORD}" psql -h {DB_HOST} -U {DB_USER} -d {DB_NAME} '
         f'-t -A -F "," '
-        f"-c \"SET standard_conforming_strings=off; SELECT id, name, department, position, email FROM employees WHERE name ILIKE E'%{sanitized}%' OR department ILIKE E'%{sanitized}%' ORDER BY name\""
+        f"-c \"SET standard_conforming_strings=off; SELECT id, name, department, position, email FROM employees WHERE name ILIKE '%{sanitized}%' ORDER BY name\""
     )
 
     try:
