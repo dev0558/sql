@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    container_name: nexushr-db
+    environment:
+      POSTGRES_USER: nexushr_admin
+      POSTGRES_PASSWORD: NexusHR2024SecurePass
+      POSTGRES_DB: nexushr
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nexushr-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexushr_admin -d nexushr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: nexushr-web
+    ports:
+      - "8888:5000"
+    environment:
+      FLASK_ENV: production
+      DB_HOST: postgres
+      DB_USER: nexushr_admin
+      DB_PASSWORD: NexusHR2024SecurePass
+      DB_NAME: nexushr
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nexushr-network
+    restart: unless-stopped
+
+networks:
+  nexushr-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
