@@ -921,14 +921,14 @@ def get_base_template(title, active_page, content):
     <footer class="footer">
         <div class="footer-inner">
             <div class="footer-left">
-                <span class="footer-copy">2024 NexusHR Enterprise</span>
+                <span class="footer-copy">2025 NexusHR Enterprise</span>
                 <div class="footer-links">
                     <a href="#" class="footer-link">Privacy</a>
                     <a href="#" class="footer-link">Terms</a>
                     <a href="#" class="footer-link">Support</a>
                 </div>
             </div>
-            <span class="footer-tech">PostgreSQL 16.6 | psql CLI Backend | v2.4.1</span>
+            <span class="footer-tech">v2.4.1</span>
         </div>
     </footer>
 </body>
@@ -1229,7 +1229,7 @@ def reports():
                 </svg>
             </div>
             <div class="stat-content">
-                <div class="stat-value">Q4 2024</div>
+                <div class="stat-value">Q4 2025</div>
                 <div class="stat-label">Current Period</div>
             </div>
         </div>
@@ -1262,42 +1262,42 @@ def reports():
                     <tr>
                         <td style="font-weight: 500;">Headcount Summary</td>
                         <td><span class="badge badge-blue">Workforce</span></td>
-                        <td>Dec 15, 2024</td>
+                        <td>Dec 15, 2025</td>
                         <td><span class="badge badge-green">Ready</span></td>
                         <td><a href="#" class="email-link">Download</a></td>
                     </tr>
                     <tr>
                         <td style="font-weight: 500;">Salary Distribution</td>
                         <td><span class="badge badge-purple">Compensation</span></td>
-                        <td>Dec 10, 2024</td>
+                        <td>Dec 10, 2025</td>
                         <td><span class="badge badge-green">Ready</span></td>
                         <td><a href="#" class="email-link">Download</a></td>
                     </tr>
                     <tr>
                         <td style="font-weight: 500;">Department Analysis</td>
                         <td><span class="badge badge-blue">Workforce</span></td>
-                        <td>Dec 8, 2024</td>
+                        <td>Dec 8, 2025</td>
                         <td><span class="badge badge-green">Ready</span></td>
                         <td><a href="#" class="email-link">Download</a></td>
                     </tr>
                     <tr>
                         <td style="font-weight: 500;">Turnover Report</td>
                         <td><span class="badge badge-yellow">Retention</span></td>
-                        <td>Dec 1, 2024</td>
+                        <td>Dec 1, 2025</td>
                         <td><span class="badge badge-green">Ready</span></td>
                         <td><a href="#" class="email-link">Download</a></td>
                     </tr>
                     <tr>
                         <td style="font-weight: 500;">Benefits Enrollment</td>
                         <td><span class="badge badge-gray">Benefits</span></td>
-                        <td>Nov 30, 2024</td>
+                        <td>Nov 30, 2025</td>
                         <td><span class="badge badge-green">Ready</span></td>
                         <td><a href="#" class="email-link">Download</a></td>
                     </tr>
                     <tr style="opacity: 0.6;">
                         <td style="font-weight: 500;">HR Confidential Records</td>
                         <td><span class="badge" style="background: var(--danger-100); color: #b91c1c;">Restricted</span></td>
-                        <td>Dec 20, 2024</td>
+                        <td>Dec 20, 2025</td>
                         <td><span class="badge" style="background: var(--danger-100); color: #b91c1c;">Locked</span></td>
                         <td><span style="color: var(--gray-400); font-size: 0.8125rem;">Access Denied</span></td>
                     </tr>

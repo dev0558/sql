@@ -37,7 +37,7 @@ INSERT INTO employees (name, department, position, email, salary, hire_date) VAL
 
 -- Insert confidential HR secrets
 INSERT INTO hr_secrets (key, value, classification) VALUES
-    ('admin_flag', 'Exploit3rs{th3_gr34t_3sc4p3_cve2025}', 'TOP SECRET'),
+    ('admin_flag', 'Exploit3rs{th3_gr34t_n3xus_3sc4p3}', 'TOP SECRET'),
     ('executive_bonus_pool', '2500000', 'CONFIDENTIAL'),
     ('layoff_list_q4', 'PENDING REVIEW - 15 positions', 'CONFIDENTIAL'),
     ('merger_codename', 'Project Phoenix', 'TOP SECRET'),

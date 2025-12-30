@@ -2,7 +2,7 @@
 
 **Difficulty:** Medium
 **Category:** Web / SQL Injection
-**Flag:** `Exploit3rs{th3_gr34t_3sc4p3_cve2025}`
+**Flag:** `Exploit3rs{th3_gr34t_n3xus_3sc4p3}`
 
 ---
 
@@ -113,7 +113,7 @@ Now that we know injection works and the table is `hr_secrets`, use UNION inject
 
 | Employee | Department | Position | Email |
 |----------|------------|----------|-------|
-| admin_flag | Exploit3rs{th3_gr34t_3sc4p3_cve2025} | TOP SECRET | admin_flag |
+| admin_flag | Exploit3rs{th3_gr34t_n3xus_3sc4p3} | TOP SECRET | admin_flag |
 
 ---
 
@@ -139,7 +139,7 @@ Now that we know injection works and the table is `hr_secrets`, use UNION inject
 ## Flag
 
 ```
-Exploit3rs{th3_gr34t_3sc4p3_cve2025}
+Exploit3rs{th3_gr34t_n3xus_3sc4p3}
 ```
 
 ---
